@@ -24,6 +24,7 @@ bash "link_fpm" do
 	user "root"
 	cwd "/tmp"
 	code <<-EOH
+	gem install fpm
 	GEMPATH=`gem env gemdir`
 	ln -snf $GEMPATH/bin/fpm /usr/bin/fpm
 	EOH
