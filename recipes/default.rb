@@ -40,4 +40,5 @@ ruby_block "link_fpm" do
             File.symlink("#{chefbin}","/usr/bin/fpm")
         end
     end
+    not_if { File.exist?("/usr/bin/fpm") }
 end
