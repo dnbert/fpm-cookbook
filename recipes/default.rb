@@ -18,14 +18,27 @@
 # limitations under the License.
 #
 
-gem_package "fpm"
+gem_package "fpm" do
+    action :install
+end
 
-bash "link_fpm" do
-	user "root"
-	cwd "/tmp"
-	code <<-EOH
-	gem install fpm
-	GEMPATH=`gem env gemdir`
-	ln -snf $GEMPATH/bin/fpm /usr/bin/fpm
-	EOH
+ruby_block "link_fpm" do
+    block do
+        # First see if it's in the standard gem bin dir
+        gemdir = `gem env gemdir`.strip
+        gembin = File.join("#{gemdir}","bin","fpm")
+        if File.exist?("#{gembin}")
+            File.symlink("#{gembin}","/usr/bin/fpm")
+            break            
+        end
+
+        # if that didn't work, chef gem installs seem to add fpm to the same dir 
+        # that gem resides in, so check there next
+        chefdir = `gem env | grep "EXECUTABLE DIRECTORY" | cut -d':' -f2`.strip
+        chefbin = File.join("#{chefdir}","fpm")
+        if File.exist?("#{chefdir}")
+            File.symlink("#{chefbin}","/usr/bin/fpm")
+        end
+    end
+    not_if { File.exist?("/usr/bin/fpm") }
 end
